@@ -11,6 +11,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource
 {
@@ -147,29 +148,16 @@ int main(void)
             2,3,0
         };
 
-        // vertex buffer
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
-
-        //unsigned int buf;
-        //GLCall(glGenBuffers(1, &buf)); // pass buffer id to buf
-        //GLCall(glBindBuffer(GL_ARRAY_BUFFER, buf)); // select buffer 
-        //GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW)); // copy data
 
         // vertex array, which is different for some reason than a vertex buffer
         // these are mandatory for 
-        unsigned int vao;
-        GLCall(glGenVertexArrays(1, &vao));
-        GLCall(glBindVertexArray(vao));
-        // link the vertex array to the vertex buffer. now we don't need to specify the vertex buffer or layout anymore. All is handlded by the array
-        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0)); // how should GPU interpret the data?
-        GLCall(glEnableVertexAttribArray(0)); // you have to enable the attribute, based on its index
+        VertexArray va;
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
 
-        // index buffer
         IndexBuffer ib(indices, 6);
-        //unsigned int ibo;
-        //GLCall(glGenBuffers(1, &ibo)); // pass buffer id to buf
-        //GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // select buffer 
-        //GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW)); // copy data
 
 
         ShaderProgramSource source = parseShader("res/shaders/basic.shader");
@@ -198,9 +186,8 @@ int main(void)
             GLCall(glUseProgram(shader));
             GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
-            GLCall(glBindVertexArray(vao));
+            va.Bind();
             ib.Bind();
-            //GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 
